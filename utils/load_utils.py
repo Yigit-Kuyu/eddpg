@@ -1,6 +1,6 @@
 from data_modules.read_mod import ReadDataset
 from data_modules.mask_mod import MaskFunc
-from data_modules.trans_mod import DataTransform
+from data_modules.trans_mod import DataTransform, DataTransform_Resnet
 from data_modules.class_mod import ResNet50Module
 from data_modules.actor_mod import PolicyModel
 import torch
@@ -11,32 +11,42 @@ from torch.utils.data import DataLoader
 
 def create_fastmri_dataset(args, partition):
     use_seed = (args.seed != 0) 
-    if partition == 'train': 
-                
+    if partition == 'train':  
                 path=""
                 LIST_PATH =''
     elif partition == 'val':            
-                
                 path=""
                 LIST_PATH =''
-
-    elif partition == 'test': 
+    elif partition == 'test':
                 path=""
                 LIST_PATH = ''
-     
     else:
         raise ValueError(f"partition should be in ['train', 'val', 'test'], not {partition}")
 
 
-    dataset = ReadDataset(
-            root=path,
-            list_path=LIST_PATH, 
-            data_partition=partition,
-            transform=DataTransform(MaskFunc(args.center_fractions, args.accelerations), args.resolution, use_seed=use_seed, args=args),
-            sample_rate=args.sample_rate,
-        )
+    if not args.train_resnet:
+        dataset = ReadDataset(
+                root=path,
+                list_path=LIST_PATH, 
+                data_partition=partition,
+                args=args,
+                transform=DataTransform(MaskFunc(args.center_fractions, args.accelerations), args.resolution, use_seed=use_seed, args=args),
+                sample_rate=args.sample_rate,
+            )
+    else:
+         dataset = ReadDataset(
+                root=path,
+                list_path=LIST_PATH, 
+                data_partition=partition,
+                args=args,
+                transform=DataTransform_Resnet(mode=partition, use_seed=use_seed),
+                sample_rate=args.sample_rate,
+            )
+    
 
     return dataset
+
+
 
 def create_data_loader(args, partition, shuffle=False):
     dataset = create_fastmri_dataset(args, partition)

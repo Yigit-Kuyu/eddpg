@@ -2,7 +2,7 @@ import fastmri.data.transforms as T
 from types import SimpleNamespace
 from typing import List
 import torch
-from utils.load_utils import load_varnet_model
+from utils.load_utils import  load_varnet_model
 from utils.promptmr import PromptMR
 
 
@@ -33,7 +33,11 @@ class KneeRecon:
         mask_center: bool = True,
         low_mem: bool = False,
     ):
-        
+        """
+        - ckpt_path: path to your .pt or Lightning checkpoint
+        - device:    e.g. "cuda:0" or "cpu"
+        - the rest:  PromptMR model hyper-params
+        """
         self.device = device
 
         # build model with exactly the args you passed
@@ -77,7 +81,13 @@ class KneeRecon:
         self.model.load_state_dict(filtered_sd, strict=False)
 
     def reconstruct(self, masked_kspace: torch.Tensor, mask: torch.Tensor):
-        
+        """
+        Inputs:
+          masked_kspace: [B, C, H, W, 2] — your k-space
+          mask:           [B, 1, 1, W, 1]  — your sampling mask
+        Returns:
+          recon: [B, H, W] — RSS magnitude images
+        """
         B, C, H, W, _ = masked_kspace.shape
 
         # make a minimal “batch” object for run_varnet_model
@@ -89,6 +99,8 @@ class KneeRecon:
             fname         = ["" for _ in range(B)],
         )
 
+        # reuse the same helper from run_pretrained_fastmri_knee_inference.py
         output, _, _ = load_varnet_model(batch, self.model, self.device)
-    
+        # if B>1, output will be a sequence; you can
+        # stack or process per-slice as needed.
         return output

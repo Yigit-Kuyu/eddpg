@@ -8,6 +8,8 @@ import torch.nn as nn
 from typing import Tuple
 
 
+
+
 def update_networks(
         actor, critic,
         actor_target, critic_target,
@@ -17,7 +19,7 @@ def update_networks(
         batch_mask_c, batch_mask_n,
         gamma              = 0.99,
         tau                = 1e-3,
-        target_update_freq = 2,
+        target_update_freq = 1,
         global_step_ctr    = None,
         budget             = None
 ):
@@ -105,8 +107,8 @@ def update_reward(base_logits, next_logits,base_probs, next_probs,slice_info, ba
     next_uncertainty = calculate_entropy(next_probs)   
     uncertainty_reduction = base_uncertainty - next_uncertainty
 
-    k1 = 100 * ce_improvement
-    k2 = 10 * ssim_improvement
+    k1 = 10 * ce_improvement
+    k2 = 100 * ssim_improvement
     k3 = 10 * uncertainty_reduction
 
     return (k1 + k2 + k3).unsqueeze(-1)

@@ -33,7 +33,7 @@ class FastMRIRawDataSample(NamedTuple):
     metadata: Dict[str, Any]
 
 class ReadDataset(Dataset):
-    def __init__(self, root, list_path, data_partition, transform=None, sample_rate=None):
+    def __init__(self, root, list_path, data_partition, args, transform=None, sample_rate=None):
     
         self.transform = transform  
         self.data_partition = data_partition
@@ -59,7 +59,8 @@ class ReadDataset(Dataset):
                         new_raw_samples.append(raw_sample)
             self.raw_samples += new_raw_samples
 
-
+        label_distribution = self.count_label_distribution()
+        if args.train_resnet: self.raw_samples +=self.oversample_minority(label_distribution)  
         counts = Counter(sample.label for sample in self.raw_samples)  
         total  = sum(counts.values())
         self.ce_weights= torch.tensor([total/counts[0], total/counts[1]],dtype=torch.float) 

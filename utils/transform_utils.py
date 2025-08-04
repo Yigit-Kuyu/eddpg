@@ -158,5 +158,5 @@ def ifft2c(data, norm="ortho"):
 def apply_mask(data, mask_func, seed=None, args=None): 
     shape = (1,) * len(data.shape[:-3]) + tuple(data.shape[-3:]) 
     mask, num_low_freqs = mask_func(shape, seed=seed, args=args) 
-    masked_data = data * mask + 0.0 
+    masked_data = data * mask 
     return masked_data, mask, num_low_freqs

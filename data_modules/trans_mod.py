@@ -1,4 +1,7 @@
-from utils.transform_utils import to_tensor, complex_center_crop, fft2c, ifft2c, apply_mask
+import numpy as np
+import torch
+from typing import NamedTuple
+from utils.transform_utils import to_tensor, complex_center_crop, fft2c, ifft2c, apply_mask, complex_abs, normalize_instance
 
 
 
@@ -23,3 +26,38 @@ class DataTransform:
         target_gt = ifft2c(target_tensor_kspace)
         slice_info = {'slice': dataslice, 'label': label, 'original_column_len': tensor_kspace.size(2)}
         return target_tensor_kspace, masked_kspace, mask_, target_gt, fname, slice_info
+
+class U_Sample(NamedTuple):
+    image: torch.Tensor
+    fname: str
+    slice_num: int
+    label: int
+    metadata: dict    
+
+class DataTransform_Resnet:
+    def __init__(self,  mode: str, use_seed: bool = True) -> None:
+        
+        self.use_seed = use_seed
+        self.mode = mode
+
+    def __call__(self, kspace, mask, target, attrs,  fname, slice_num, label):
+      
+        tensor_kspace = to_tensor(kspace)  
+        tensor_image = ifft2c(tensor_kspace)  
+        crop_size = [320, 320]
+        cropped_clean_image = complex_center_crop(tensor_image, crop_size)  
+        target_tensor_kspace = fft2c(cropped_clean_image)  
+        input_image = complex_abs(ifft2c(target_tensor_kspace)) 
+        input_image = torch.sqrt(torch.sum(input_image ** 2, dim=0))  
+        input_image, _, _ = normalize_instance(input_image, eps=1e-11) 
+        input_image = input_image.unsqueeze(0).expand(3, -1, -1) 
+        
+        ret = U_Sample(
+           image=input_image, 
+           fname=fname,
+           slice_num=slice_num, 
+           label=label,
+           metadata=attrs
+        )
+
+        return ret

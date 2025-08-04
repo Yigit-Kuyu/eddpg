@@ -123,7 +123,6 @@ def process(args, epoch, infer_model, actor, loader, partition,logger, replay_bu
 
 def train_and_eval(args): 
          
-    start_epoch = 0
     logger_val = get_training_logger(args.policy_model_checkpoint)
     (critic, actor_target, critic_target, optimizer_actor, optimizer_critic,
      tracker, recon_engine,
@@ -132,7 +131,7 @@ def train_and_eval(args):
      replay_buffer) = initialization(args)
 
     
-    for epoch in range(start_epoch, args.num_epochs):
+    for epoch in range(0, args.num_epochs):
           
         actor,critic,actor_target,critic_target,optimizer_actor,optimizer_critic = process(args, epoch, infer_model, actor, train_loader, 'Train',None, replay_buffer, 
                                                                         critic=critic,
