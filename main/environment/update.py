@@ -134,9 +134,7 @@ def update_env(
             mask_n=mask_next
         recon_u = recon_engine.reconstruct(masked_kspace, mask_n)    
 
-        recon_norm = scale(recon_u).to(args.device)
-        inp_out = recon_norm.unsqueeze(1)
-        inp3=inp_out.expand(-1, 3, -1, -1)
+        inp3 = scale(recon_u).to(args.device)
         outputs, logits = infer_model(inp3)
 
 

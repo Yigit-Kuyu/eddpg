@@ -52,10 +52,13 @@ def center_crop_mask(mask: np.ndarray, shape: Tuple[int, int]):
 
 def scale(x: torch.Tensor) -> torch.Tensor:
     
-    x = x - x.amin(dim=(-2, -1), keepdim=True)
-    x = x / (x.amax(dim=(-2, -1), keepdim=True) + 1e-9)
-    
-    return x.clamp(0, 1)
+    x = x.to(torch.float32)
+    B = x.shape[0]
+    x_flat = x.view(B, -1)
+    mu = x_flat.mean(dim=1, keepdim=True).view(B, 1, 1)
+    sd = x_flat.std(dim=1, keepdim=True).view(B, 1, 1).clamp_min(1e-6)
+    x = (x - mu) / sd
+    return x.unsqueeze(1).expand(-1, 3, -1, -1)
 
     
 def complex_abs(data: torch.Tensor) -> torch.Tensor:

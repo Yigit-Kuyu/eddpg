@@ -50,7 +50,6 @@ class DataTransform_Resnet:
         input_image = complex_abs(ifft2c(target_tensor_kspace)) 
         input_image = torch.sqrt(torch.sum(input_image ** 2, dim=0))  
         input_image=scale(input_image) 
-        input_image = input_image.unsqueeze(0).expand(3, -1, -1) 
         
         ret = U_Sample(
            image=input_image, 
