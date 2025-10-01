@@ -52,6 +52,8 @@ def center_crop_mask(mask: np.ndarray, shape: Tuple[int, int]):
 
 def scale(x: torch.Tensor) -> torch.Tensor:
     
+    if torch.is_complex(x):
+        x = x.abs()
     x = x.to(torch.float32)
     B = x.shape[0]
     x_flat = x.view(B, -1)
